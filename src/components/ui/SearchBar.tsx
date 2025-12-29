@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   TextInput,
@@ -10,8 +10,8 @@ import {
   StyleProp,
 } from 'react-native';
 import Icon from '../layout/Icon';
-import {Metrics} from '../../theme/spacing';
-import {Colors} from '../../theme/colors';
+import { Metrics } from '../../theme/spacing';
+import { Colors } from '../../theme/colors';
 import ff from '../../theme/fonts';
 import appString from '../../constants/strings';
 
@@ -68,7 +68,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         value={text}
         onChangeText={handleChange}
       />
-      <Animated.View style={[styles.clearContainer, {opacity: clearAnim}]}>
+      <Animated.View style={[styles.clearContainer, { opacity: clearAnim }]}>
         <TouchableOpacity onPress={handleClear}>
           <Icon
             name="close-circle"
@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: Metrics.r50,
     paddingHorizontal: Metrics.s12,
+    marginHorizontal: Metrics.s15,
+    marginTop: Metrics.vs15,
   },
   searchIcon: {
     marginRight: Metrics.s10,

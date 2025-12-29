@@ -7,6 +7,7 @@ const appString = {
   ok: 'OK',
   cancel: 'Cancel',
   submit: 'Submit',
+  searchWithDot: 'search...',
 };
 
 export default appString;

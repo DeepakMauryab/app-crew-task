@@ -11,7 +11,7 @@ import { supabase } from '../supabase/supabase';
 import { Layout } from '../components/layout/Layout';
 import { Note, NotesItem } from '../components/ui/NotesItem';
 import { AddNoteModal } from '../components/ui/AddNoteModal';
-import Button from '../components/ui/Button';
+import Button, { Variant } from '../components/ui/Button';
 import { height, Metrics } from '../theme/spacing';
 import ff from '../theme/fonts';
 import { Colors } from '../theme/colors';
@@ -21,10 +21,12 @@ import ConfirmationDialog from '../components/ui/ConfirmationDialog';
 import screenName from '../constants/screens';
 import { useAppDispatch } from '../store';
 import { logoutUser } from '../store/slices/auth.slice';
+import SearchInput from '../components/ui/SearchBar';
 
 const Notes: ScreenComponentType = ({ navigation }) => {
   const dispatch = useAppDispatch();
 
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
@@ -34,6 +36,7 @@ const Notes: ScreenComponentType = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [logoutConfirmation, setLogoutConfirmation] = useState(false);
+  const [search, setSearch] = useState('');
 
   const selectedNote = notes?.find(n => n.id === selectedNoteId);
 
@@ -47,6 +50,7 @@ const Notes: ScreenComponentType = ({ navigation }) => {
 
       if (error) throw error;
       setNotes(data ?? []);
+      setAllNotes(data ?? []);
     } catch {
       ToastAndroid.show(
         'Failed to load notes. Please try again.',
@@ -154,6 +158,16 @@ const Notes: ScreenComponentType = ({ navigation }) => {
     }
   }, [dispatch, navigation]);
 
+  const handleSearch = (text: string) => {
+    setSearch(text);
+
+    const result = allNotes.filter(note =>
+      note.title.toLowerCase().includes(text.toLowerCase()),
+    );
+
+    setNotes(result);
+  };
+
   return (
     <Layout
       scrollable={false}
@@ -161,6 +175,7 @@ const Notes: ScreenComponentType = ({ navigation }) => {
       title="Notes"
       leftNode={
         <Button
+          variant={Variant.Link}
           onPress={() => setLogoutConfirmation(true)}
           style={styles.headerBtn}
           textStyle={styles.headerBtnText}
@@ -170,6 +185,7 @@ const Notes: ScreenComponentType = ({ navigation }) => {
       }
       headerRight={
         <Button
+          variant={Variant.Link}
           onPress={() => setModalVisible(true)}
           style={styles.headerBtn}
           textStyle={styles.headerBtnText}
@@ -208,33 +224,36 @@ const Notes: ScreenComponentType = ({ navigation }) => {
           <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : (
-        <FlatList
-          data={notes}
-          keyExtractor={i => i.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item, index }) => (
-            <NotesItem
-              note={item}
-              index={index}
-              onEdit={() => {
-                setSelectedNoteId(item.id);
-                setModalVisible(true);
-              }}
-              onDelete={() => {
-                setSelectedNoteId(item.id);
-                setDeleteConfirmation(true);
-              }}
-            />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>No Notes Yet</Text>
-              <Text style={styles.emptyDescription}>
-                Tap "+ Add Note" to create your first note.
-              </Text>
-            </View>
-          }
-        />
+        <>
+          <SearchInput value={search} onChangeText={handleSearch} />
+          <FlatList
+            data={notes}
+            keyExtractor={i => i.id}
+            contentContainerStyle={styles.list}
+            renderItem={({ item, index }) => (
+              <NotesItem
+                note={item}
+                index={index}
+                onEdit={() => {
+                  setSelectedNoteId(item.id);
+                  setModalVisible(true);
+                }}
+                onDelete={() => {
+                  setSelectedNoteId(item.id);
+                  setDeleteConfirmation(true);
+                }}
+              />
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>No Notes Yet</Text>
+                <Text style={styles.emptyDescription}>
+                  Tap "+ Add Note" to create your first note.
+                </Text>
+              </View>
+            }
+          />
+        </>
       )}
 
       {modalVisible && (
@@ -272,8 +291,8 @@ const styles = StyleSheet.create({
   },
 
   list: {
-    paddingTop: Metrics.vs25,
-    paddingHorizontal: Metrics.s20,
+    paddingTop: Metrics.vs10,
+    paddingHorizontal: Metrics.s15,
     paddingBottom: Metrics.vs30,
   },
 
