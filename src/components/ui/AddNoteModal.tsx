@@ -60,12 +60,14 @@ export const AddNoteModal: React.FC<AddNoteModalProps> = ({
             placeholder="Title"
             value={title}
             onChangeText={setTitle}
+            placeholderTextColor={Colors.textPrimary}
           />
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Content"
             value={content}
             onChangeText={setContent}
+            placeholderTextColor={Colors.textPrimary}
             multiline
             numberOfLines={4}
           />

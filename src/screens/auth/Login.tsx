@@ -26,12 +26,14 @@ const Login: ScreenComponentType = ({ navigation }) => {
   const [error, setError] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     response: '',
   });
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
   });
 
   const opacity = useRef(new Animated.Value(1)).current;
@@ -71,12 +73,17 @@ const Login: ScreenComponentType = ({ navigation }) => {
     setFormData(prev => ({ ...prev, password }));
     setError(prev => ({ ...prev, password: '' }));
   }, []);
+  const onConfirmPasswordChange = useCallback((confirmPassword: string) => {
+    setFormData(prev => ({ ...prev, confirmPassword }));
+    setError(prev => ({ ...prev, confirmPassword: '' }));
+  }, []);
 
   const validate = useCallback(() => {
     let valid = true;
     const errors = {
       email: '',
       password: '',
+      confirmPassword: '',
       response: '',
     };
 
@@ -95,10 +102,17 @@ const Login: ScreenComponentType = ({ navigation }) => {
       errors.password = 'Password must be at least 6 characters';
       valid = false;
     }
+    if (isSignUp) {
+      if (formData.confirmPassword !== formData.password) {
+        errors.confirmPassword =
+          'Comfirm Password and Password must be at same';
+        valid = false;
+      }
+    }
 
     setError(errors);
     return valid;
-  }, [formData.email, formData.password]);
+  }, [formData.email, formData.password, formData.confirmPassword]);
 
   useEffect(() => {
     if (!success) return;
@@ -168,6 +182,7 @@ const Login: ScreenComponentType = ({ navigation }) => {
         setFormData({
           email: '',
           password: '',
+          confirmPassword: '',
         });
       }
     } catch (e: any) {
@@ -185,10 +200,12 @@ const Login: ScreenComponentType = ({ navigation }) => {
     setFormData({
       email: '',
       password: '',
+      confirmPassword: '',
     });
     setError({
       email: '',
       password: '',
+      confirmPassword: '',
       response: '',
     });
     setSuccess('');
@@ -220,6 +237,16 @@ const Login: ScreenComponentType = ({ navigation }) => {
           error={error.password}
           onChangeText={onPasswordChange}
         />
+
+        {isSignUp && (
+          <TextInputField
+            secureTextEntry
+            placeholder="Enter Confirm Password"
+            value={formData.confirmPassword}
+            error={error.confirmPassword}
+            onChangeText={onConfirmPasswordChange}
+          />
+        )}
 
         {error && <Text style={styles.errorText}>{error.response}</Text>}
         {success && <Text style={styles.successText}>{success}</Text>}

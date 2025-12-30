@@ -43,6 +43,8 @@ const Notes: ScreenComponentType = ({ navigation }) => {
   const fetchNotes = useCallback(async () => {
     try {
       setLoading(true);
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('session expired, login again');
       const { data, error } = await supabase
         .from('notes')
         .select('*')
@@ -51,11 +53,14 @@ const Notes: ScreenComponentType = ({ navigation }) => {
       if (error) throw error;
       setNotes(data ?? []);
       setAllNotes(data ?? []);
-    } catch {
+    } catch (e: any) {
       ToastAndroid.show(
-        'Failed to load notes. Please try again.',
+        e.message || 'Failed to load notes. Please try again.',
         ToastAndroid.SHORT,
       );
+      if (e.message === 'session expired, login again') {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -69,6 +74,8 @@ const Notes: ScreenComponentType = ({ navigation }) => {
     async (title: string, content: string) => {
       try {
         setMutationLoading(true);
+        const user = (await supabase.auth.getUser()).data.user;
+        if (!user) throw new Error('session expired, login again');
 
         if (selectedNoteId) {
           const { error } = await supabase
@@ -84,9 +91,6 @@ const Notes: ScreenComponentType = ({ navigation }) => {
             ),
           );
         } else {
-          const user = (await supabase.auth.getUser()).data.user;
-          if (!user) throw new Error('session expired, login again');
-
           const { data, error } = await supabase
             .from('notes')
             .insert({ title, content, user_id: user.id })
@@ -97,13 +101,11 @@ const Notes: ScreenComponentType = ({ navigation }) => {
           setNotes(prev => [data, ...prev]);
         }
       } catch (e: any) {
-        console.log(e.message);
-
         ToastAndroid.show(
           e.message || 'Unable to save note. Please try again.',
           ToastAndroid.SHORT,
         );
-        if (e.message === 'user not found') {
+        if (e.message === 'session expired, login again') {
           logout();
         }
       } finally {
@@ -117,6 +119,8 @@ const Notes: ScreenComponentType = ({ navigation }) => {
 
   const handleDelete = useCallback(async () => {
     if (!selectedNoteId) return;
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('session expired, login again');
 
     try {
       setMutationLoading(true);
@@ -127,11 +131,14 @@ const Notes: ScreenComponentType = ({ navigation }) => {
 
       if (error) throw error;
       setNotes(prev => prev.filter(n => n.id !== selectedNoteId));
-    } catch {
+    } catch (e: any) {
       ToastAndroid.show(
-        'Failed to delete note. Try again.',
+        e.message || 'Failed to delete note. Try again.',
         ToastAndroid.SHORT,
       );
+      if (e.message === 'session expired, login again') {
+        logout();
+      }
     } finally {
       setDeleteConfirmation(false);
       setSelectedNoteId(null);
@@ -250,6 +257,16 @@ const Notes: ScreenComponentType = ({ navigation }) => {
                 <Text style={styles.emptyDescription}>
                   Tap "+ Add Note" to create your first note.
                 </Text>
+                <Button
+                  style={{ ...styles.headerBtn, marginTop: Metrics.vs15 }}
+                  textStyle={styles.headerBtnText}
+                  onPress={() => {
+                    fetchNotes();
+                    setSearch('');
+                  }}
+                >
+                  Refresh
+                </Button>
               </View>
             }
           />
