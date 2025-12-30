@@ -1,11 +1,17 @@
-import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  DefaultTheme,
+  NavigationContainer,
+} from '@react-navigation/native';
 import Routes from './navigation/Routes';
 import { Colors } from './theme/colors';
-import { Provider } from 'react-redux';
-import { persistor, store } from './store';
-import { PersistGate } from 'redux-persist/integration/react';
+
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
+import { supabase } from './supabase/supabase';
+import { logoutUser } from './store/slices/auth.slice';
+import screenName from './constants/screens';
+import { useAppDispatch } from './store';
 
 const MyTheme = {
   ...DefaultTheme,
@@ -24,6 +30,9 @@ const linking = {
   },
 };
 const Main = () => {
+  const navigationRef = createNavigationContainerRef();
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     const sub = Linking.addEventListener('url', ({ url }) => {
       console.log('Deep link opened:', url);
@@ -32,14 +41,27 @@ const Main = () => {
     return () => sub.remove();
   }, []);
 
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        dispatch(logoutUser());
+
+        if (navigationRef.isReady()) {
+          navigationRef.reset({
+            index: 0,
+            routes: [{ name: screenName.login }],
+          });
+        }
+      }
+    });
+
+    return () => data.subscription.unsubscribe();
+  }, []);
+
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <NavigationContainer theme={MyTheme} linking={linking}>
-          <Routes />
-        </NavigationContainer>
-      </PersistGate>
-    </Provider>
+    <NavigationContainer ref={navigationRef} theme={MyTheme} linking={linking}>
+      <Routes />
+    </NavigationContainer>
   );
 };
 

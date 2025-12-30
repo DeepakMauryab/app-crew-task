@@ -14,9 +14,7 @@ import { Metrics } from '../../theme/spacing';
 import { Colors } from '../../theme/colors';
 import { graphics } from '../../assets';
 import Button, { Variant } from '../ui/Button';
-import { useNavigation } from '@react-navigation/native';
 import ff from '../../theme/fonts';
-import Icon from './Icon';
 import appString from '../../constants/strings';
 
 interface LayoutProps {
